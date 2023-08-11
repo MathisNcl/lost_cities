@@ -16,7 +16,7 @@ class Player:
         try:
             self.name: str = name
             self.hand: list = []
-            self.board: dict = {color: [0] for color in eval(f"self.VERSION_{version}")}
+            self.board: dict = {color: [] for color in eval(f"self.VERSION_{version}")}
         except AttributeError:
             raise AttributeError("version should be 5 or 6 not {version}")
 
@@ -35,11 +35,8 @@ class Player:
         """
         # check whether it is allowed
         played: bool = False
-        if (
-            card.value == "Paris"
-            and self.board[card.color][-1] in [0, "Paris"]
-            or int(card.value) > int(self.board[card.color][-1])  # FIXME: should bug
-        ):
+        expedition: list = self.board[card.color]
+        if len(expedition) == 0 or card.value >= expedition[-1]:
             self.hand.remove(card)
             self.board[card.color].append(card.value)
             played = True
@@ -64,15 +61,27 @@ class Player:
         self.hand.remove(card)
         return card
 
+    def reorder_hand(self) -> None:
+        """Reorder the hand"""
+        self.hand.sort()
+
     def compute_one_score(self, expedition: list) -> int:
+        """Compute score for one expedition
+
+        Args:
+            expedition (list): value in the expedition
+
+        Returns:
+            int: score of the expedition
+        """
         expedition_value: int = 0
 
-        if len(expedition) > 1:
-            paris_count = sum(value == "Bet" for value in expedition) + 1
-            expedition_value = sum(int(value) for value in expedition if value != "Bet") - 20
+        if len(expedition) > 0:
+            paris_count = sum(value == 0 for value in expedition) + 1
+            expedition_value = sum(value for value in expedition) - 20
 
             expedition_value *= paris_count
-            if len(expedition) >= 9:
+            if len(expedition) >= 8:
                 expedition_value += 20
 
         return expedition_value
@@ -97,25 +106,35 @@ class ComputerPlayer(Player):
     def __init__(self, name):
         super().__init__(name)
 
-    def choose_action(self):
-        # Check if the player can start an expedition
+    def choose_action(self) -> tuple[str, Card]:
+        # High importance rules
         for color in self.board:
-            if not self.board[color] and (
-                any(card.value == "Bet" for card in self.hand)
-                and (
-                    sum(card.color == color for card in self.hand) >= 3
-                    or sum(card.value for card in self.hand if card.color == color) >= 10
-                )
+            # Check if the player should start an expedition with a 0
+            colored_hand: list[Card] = [card for card in self.hand if card.color == color]
+            if (
+                not self.board[color]
+                and any(card.value == 0 for card in colored_hand)
+                and (len(colored_hand) >= 4 or sum(card.value for card in colored_hand) >= 10)
             ):
-                return ("play",)  # self.hand.index("Bet") change to get the  first bet from the color
+                return ("play", Card(color, 0))
 
-        # Play close card
+            # Play close card
+            if self.board[color]:
+                last_card_value = self.board[color][-1]
+                close_card = [card.value == last_card_value + 1 for card in colored_hand]
+                if any(close_card):
+                    return ("play", Card(color, last_card_value + 1))
+
+        # Medium importance rules
         for color in self.board:
-            if len(self.board[color]) > 1:
-                last_card_value = self.board[color][-1].value
-                close_card = [card.value == last_card_value + 1 for card in self.hand if card.color == color]
-                if last_card_value != "Paris" and any(close_card):
-                    return ("play", color, close_card)
+            # Discard if many card not playable
+            colored_hand: list[Card] = [card for card in self.hand if card.color == color]
+            if (
+                self.board[color]
+                and any(card.value == 0 for card in colored_hand)
+                and (len(colored_hand) >= 4 or sum(card.value for card in colored_hand) >= 10)
+            ):
+                return ("discard", Card(color, 0))
 
     def calculate_potential_score(self, color, expedition):
         play_score = self.compute_one_score(expedition)
