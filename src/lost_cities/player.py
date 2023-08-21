@@ -1,3 +1,5 @@
+from typing import Any
+
 from lost_cities import logger
 from lost_cities.card import Card
 
@@ -103,8 +105,12 @@ class Player:
 
 
 class ComputerPlayer(Player):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name)
+
+    def __repr__(self) -> str:
+        """Representation of the object"""
+        return f"Computer named {self.name} playing with {len(self.board)} colors\nActual setup: {self.board}"
 
     def choose_action(self) -> tuple[str, Card]:
         # High importance rules
@@ -120,30 +126,31 @@ class ComputerPlayer(Player):
 
             # Play close card
             if self.board[color]:
-                last_card_value = self.board[color][-1]
-                close_card = [card.value == last_card_value + 1 for card in colored_hand]
-                if any(close_card):
+                last_card_value: int = self.board[color][-1] if len(self.board[color]) > 0 else 0
+                closest_card: list[bool] = [card.value == last_card_value + 1 for card in colored_hand]
+                close_card: list[bool] = [card.value == last_card_value + 2 for card in colored_hand]
+                if any(closest_card):
                     return ("play", Card(color, last_card_value + 1))
+                elif any(close_card):
+                    return ("play", Card(color, last_card_value + 2))
 
         # Medium importance rules
         for color in self.board:
             # Discard if many card not playable
-            colored_hand: list[Card] = [card for card in self.hand if card.color == color]
-            if (
-                self.board[color]
-                and any(card.value == 0 for card in colored_hand)
-                and (len(colored_hand) >= 4 or sum(card.value for card in colored_hand) >= 10)
-            ):
-                return ("discard", Card(color, 0))
+            colored_hand = [card for card in self.hand if card.color == color]
+            last_value: int = self.board[color][-1] if len(self.board[color]) > 0 else 0
+            not_playable: list[Card] = [card for card in colored_hand if card.value < last_value]
+            if len(not_playable) >= 3:
+                return ("discard", not_playable[0])
 
-    def calculate_potential_score(self, color, expedition):
-        play_score = self.compute_one_score(expedition)
-
-        discard_score = 0
-        for card in self.hand:
-            if card.color == color:
-                discard_score += card.value - 20
-                if card.value == "Paris":
-                    discard_score *= 2
-
-        return {"play": play_score, "discard": discard_score}
+        # Low importance
+        best_move: dict[str, Any] = dict()
+        for color in self.board:
+            # play the closest
+            colored_hand = [card for card in self.hand if card.color == color]
+            last_value = self.board[color][-1] if len(self.board[color]) > 0 else 0
+            playable: list[Card] = [card for card in colored_hand if card.value >= last_value]
+            potential_diff: int = playable[0].value - last_value if len(playable) > 0 else 99
+            if best_move.get("card") is None or best_move["diff"] > potential_diff:
+                best_move = dict(card=playable[0], diff=potential_diff)
+        return ("play", best_move["card"])
