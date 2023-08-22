@@ -1,0 +1,21 @@
+__pycache__
+__pycache__/*
+
+.vscode
+.vscode/*
+.pytest_cache
+.pytest_cache/*
+
+pytest.ini
+
+*.jpg
+*.mp4
+.ipynb_checkpoints/
+
+# Setuptools
+*.egg-info/
+
+.coverage
+.coverage*
+.env
+.tox
