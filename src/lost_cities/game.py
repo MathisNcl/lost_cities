@@ -169,3 +169,20 @@ class LostCitiesGame:
         scores: dict[str, int] = {player.name: player.compute_score() for player in self.players}
         logger.info(f"Scores: {scores}")
         logger.info(f"Winner: {max(scores, key=scores.get)}")
+
+
+def main():  # pragma: nocover
+    name1: str = input("Name of Player 1? ")
+    vs_computer_Yn: str = input("Play against computer? (Y/n): ")
+    vs_computer: bool = True
+    name2: str = "Ordi"
+    if vs_computer_Yn.upper() != "Y":
+        vs_computer = False
+        name2 = input("Name of Player 2? ")
+
+    game = LostCitiesGame(name1, name2, vs_computer=vs_computer)
+    game.play_game()
+
+
+if __name__ == "__main__":  # pragma: nocover
+    main()
