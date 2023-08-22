@@ -1,6 +1,7 @@
 from unittest.mock import patch
-from lost_cities.game import LostCitiesGame
+
 from lost_cities.card import Card
+from lost_cities.game import LostCitiesGame
 from lost_cities.player import ComputerPlayer
 
 initial_hand_size: int = 8

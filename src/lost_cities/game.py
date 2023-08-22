@@ -1,9 +1,9 @@
 import random
+from typing import Any, Literal, Optional
 
+from lost_cities import logger
 from lost_cities.card import Card
 from lost_cities.player import ComputerPlayer, Player
-from typing import Literal, Optional
-from lost_cities import logger
 
 
 class LostCitiesGame:
@@ -21,15 +21,15 @@ class LostCitiesGame:
             vs_computer (bool, optional): Whether to play against computer. Defaults to True.
             version (Literal[5, 6], optional): Which version to play. Defaults to 5.
         """
-        self.deck = []
-        self.discard_piles = []
-        self.players = [Player(player1_name, version)]
-        self.colors = eval(f"self.VERSION_{version}")
+        self.deck: list[Card] = []
+        self.discard_piles: list[Card] = []
+        self.players: list[Player] = [Player(player1_name, version)]
+        self.colors: list[str] = eval(f"self.VERSION_{version}")
         if vs_computer:
             self.players.append(ComputerPlayer(player2_name, version))
         else:
             self.players.append(Player(player2_name, version))
-        self.current_player = 0
+        self.current_player: int = 0
 
     def setup(self) -> None:
         """Sets all cards in the deck, shuffles and gives 8 cards for each player"""
@@ -166,12 +166,12 @@ class LostCitiesGame:
         while len(self.deck) != 0:
             self.play_round()
 
-        scores: dict[str, int] = {player.name: player.compute_score() for player in self.players}
+        scores: dict[str, Any] = {player.name: player.compute_score() for player in self.players}
         logger.info(f"Scores: {scores}")
-        logger.info(f"Winner: {max(scores, key=scores.get)}")
+        logger.info(f"Winner: {max(scores, key=scores.get)}")  # type: ignore
 
 
-def main():  # pragma: nocover
+def main() -> None:  # pragma: nocover
     name1: str = input("Name of Player 1? ")
     vs_computer_Yn: str = input("Play against computer? (Y/n): ")
     vs_computer: bool = True

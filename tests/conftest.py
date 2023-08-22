@@ -1,8 +1,8 @@
 import pytest
 
 from lost_cities.card import Card
-from lost_cities.player import ComputerPlayer, Player
 from lost_cities.game import LostCitiesGame
+from lost_cities.player import ComputerPlayer, Player
 
 
 @pytest.fixture
