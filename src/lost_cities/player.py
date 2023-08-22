@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 from lost_cities import logger
 from lost_cities.card import Card
@@ -44,7 +44,7 @@ class Player:
             played = True
             logger.info(f"{self.name} plays {str(card)}")
         else:
-            logger.info(
+            logger.warning(
                 f"{self.name} can not play this card {card.value}:{card.color}"
                 + f" because the last card is {self.board[card.color][-1]}"
             )
@@ -61,6 +61,7 @@ class Player:
             Card: Card removed
         """
         self.hand.remove(card)
+        logger.info(f"{self.name} discard {card}")
         return card
 
     def reorder_hand(self) -> None:
@@ -105,8 +106,8 @@ class Player:
 
 
 class ComputerPlayer(Player):
-    def __init__(self, name: str) -> None:
-        super().__init__(name)
+    def __init__(self, name: str, version: int = 5) -> None:
+        super().__init__(name, version)
 
     def __repr__(self) -> str:
         """Representation of the object"""
@@ -151,6 +152,35 @@ class ComputerPlayer(Player):
             last_value = self.board[color][-1] if len(self.board[color]) > 0 else 0
             playable: list[Card] = [card for card in colored_hand if card.value >= last_value]
             potential_diff: int = playable[0].value - last_value if len(playable) > 0 else 99
-            if best_move.get("card") is None or best_move["diff"] > potential_diff:
+            if playable and (best_move.get("card") is None or best_move.get("diff", 100) > potential_diff):
                 best_move = dict(card=playable[0], diff=potential_diff)
-        return ("play", best_move["card"])
+        if best_move:
+            return ("play", best_move["card"])
+        else:
+            return ("discard", self.hand[0])
+
+    def choose_pile(self, discard_card: Optional[Card], last_action: str) -> str:
+        """choose the best pile to take a card of
+
+        Args:
+            discard_card (Optional[Card]): last discarded card
+
+        Returns:
+            str: "deck" or "discard" choice
+        """
+        if discard_card is None or last_action == "discard":
+            return "deck"
+
+        board_color: list[Card] = self.board[discard_card.color]
+        hand_color_cards: list[Card] = [card for card in self.hand if card.color == discard_card.color]
+
+        if discard_card.value == 0 and not board_color and len(hand_color_cards) >= 2:
+            return "discard"
+
+        if not board_color and discard_card.value >= 4:
+            return "discard"
+
+        if board_color and discard_card.value > board_color[-1]:
+            return "discard"
+
+        return "deck"

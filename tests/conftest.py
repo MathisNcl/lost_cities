@@ -2,6 +2,7 @@ import pytest
 
 from lost_cities.card import Card
 from lost_cities.player import ComputerPlayer, Player
+from lost_cities.game import LostCitiesGame
 
 
 @pytest.fixture
@@ -24,3 +25,11 @@ def computer_player():
     ]
 
     return cp
+
+
+@pytest.fixture
+def game_setup():
+    game = LostCitiesGame("Player1", "Player2")
+    game.setup()
+
+    return game

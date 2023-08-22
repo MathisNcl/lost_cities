@@ -19,7 +19,7 @@ def test_player_instanciate(test_player):
     assert f"{test_player.name} playing with {len(test_player.board)} colors\nActual setup:" in str(test_player)
 
 
-def test_player_discard(test_player):
+def test_player_discard(test_player, caplog):
     [test_player.hand.append(Card("Blue", i)) for i in range(2, 6)]
 
     assert len(test_player.hand) == 4
@@ -28,6 +28,8 @@ def test_player_discard(test_player):
 
     assert len(test_player.hand) == 3
     assert all([card != discarded for card in test_player.hand])
+
+    assert "discard" in caplog.text
 
 
 @pytest.mark.parametrize("last_value,value", [(3, 4), (None, 4), (0, 4), (None, 0), (0, 0)])
@@ -130,11 +132,41 @@ def test_choose_action_medium_importance(computer_player, board, expected_action
         ({"Green": [3, 4], "Yellow": [2], "Red": [5]}, ("play", Card("Red", 8))),
         ({"Green": [10], "Yellow": [2]}, ("play", Card("Yellow", 7))),
         ({"Green": [10], "Yellow": [8]}, ("discard", Card("Yellow", 0))),
+        ({"Green": [10], "Yellow": [10], "Red": [10]}, ("discard", Card("Yellow", 0))),
     ],
 )
 def test_choose_action_low_importance(computer_player, board, expected_action):
     computer_player.board.update(board)
     computer_player.discard_card(Card("Yellow", 2))
+    if computer_player.board["Yellow"] == [10]:
+        computer_player.discard_card(Card("Yellow", 0))
     computer_player.discard_card(Card("Green", 5))
     action = computer_player.choose_action()
     assert action == expected_action
+
+
+@pytest.mark.parametrize(
+    "discard_card, last_action, expected_choice",
+    [
+        (None, "discard", "deck"),
+        (Card("Green", 0), "play", "discard"),
+        (Card("Green", 0), "discard", "deck"),
+        (Card("Red", 7), "play", "discard"),
+        (Card("Red", 2), "play", "deck"),
+        (Card("Blue", 9), "play", "discard"),
+        (Card("Blue", 4), "play", "deck"),
+    ],
+)
+def test_player_choose_pile(computer_player, discard_card, last_action, expected_choice):
+    computer_player.hand = [
+        Card("Yellow", 0),
+        Card("Yellow", 2),
+        Card("Yellow", 7),
+        Card("Red", 8),
+        Card("Green", 0),
+        Card("Green", 5),
+        Card("Green", 8),
+    ]
+    computer_player.board = {"Yellow": [], "Blue": [3, 5, 6], "Red": [], "Green": [], "White": []}
+    result = computer_player.choose_pile(discard_card, last_action)
+    assert result == expected_choice
