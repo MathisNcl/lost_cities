@@ -1,4 +1,5 @@
 from typing import Any
+from lost_cities.gui.utils import extract_card
 
 
 class Card:
@@ -15,6 +16,7 @@ class Card:
             raise AttributeError("value must be between 2 and 10 or a 0")
         self.color = str(color)
         self.value = value
+        self.img = extract_card(self.color, self.value)
 
     def __repr__(self) -> str:
         """Representation of a card
