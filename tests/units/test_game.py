@@ -97,6 +97,10 @@ def test_game_only_computers(caplog):
 @patch("builtins.input", side_effect=["dummy", "play", "10", "dummy", "0", "deck"])
 def test_play_round(mock_input, game_setup, caplog):
     first_card = game_setup.players[0].hand[0]
+    # kind of mocking
+    game_setup.deck.pop()
+    game_setup.deck.append(Card("Blue", 10))  # other than 0 something
+
     game_setup.play_round()
 
     assert "Your hand" in caplog.text
