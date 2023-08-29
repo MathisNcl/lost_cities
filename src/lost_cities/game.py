@@ -42,6 +42,8 @@ class LostCitiesGame:
             for player in self.players:
                 player.hand.append(self.deck.pop())
 
+        self.players[0].reorder_hand()
+
     def switch_player(self) -> None:
         """Change player cursor"""
         self.current_player = 1 - self.current_player
@@ -53,7 +55,7 @@ class LostCitiesGame:
             chosen_pile (Optional[str], optional): chosen pile by compuyrt . Defaults to None.
         """
         current_player: Player = self.players[self.current_player]
-        pile: str = chosen_pile or input("Choose an pile (deck/discard): ")
+        pile: str = chosen_pile or input("Choose a pile (deck/discard): ")
         while True:
             if pile not in ["deck", "discard"]:
                 logger.warning(f"{pile} is not a valid piles. Choose deck or discard.")
@@ -69,15 +71,19 @@ class LostCitiesGame:
             current_player.hand.append(self.discard_piles.pop())
         current_player.reorder_hand()
 
-    def action_play_card(self) -> bool:
+    def action_play_card(self, index: Optional[str] = None, skip_card: bool = False) -> bool:
         """Method to play a valid card
+
+        Args:
+            index (Optional[str]): if not None, index to take else would be asked with input. Defaults to None.
+            skip_card (bool): Whether to skip last action as taking a card and switch player. Defaults to False.
 
         Returns:
             bool: Whether the card has been played
         """
 
         current_player: Player = self.players[self.current_player]
-        card_input: str = input("Index card to play: ")
+        card_input: str = index if index is not None else input("Index card to play: ")
         while True:
             try:
                 card: Card = current_player.hand[int(card_input)]
@@ -93,16 +99,22 @@ class LostCitiesGame:
         if not can_play:
             return can_play
 
-        self.pick_card()
-        self.switch_player()
+        if skip_card is False:
+            self.pick_card()
+            self.switch_player()
 
         return can_play
 
-    def action_discard(self) -> None:
-        """Method to discard a valid card"""
+    def action_discard(self, index: Optional[str] = None, skip_card: bool = False) -> None:
+        """Method to discard a valid card
+
+        Args:
+            index (Optional[str]): if not None, index to take else would be asked with input. Defaults to None.
+            skip_card (bool): Whether to skip last action as taking a card and switch player. Defaults to False.
+        """
 
         current_player: Player = self.players[self.current_player]
-        card_input: str = input("Index card to discard: ")
+        card_input: str = index if index is not None else input("Index card to discard: ")
         while True:
             try:
                 card: Card = current_player.hand[int(card_input)]
@@ -115,12 +127,25 @@ class LostCitiesGame:
                 card_input = input("Index to discard: ")
 
         current_player.discard_card(card)
+        card.rotate_surface_to_discard()
         self.discard_piles.append(card)
-        self.pick_card()
-        self.switch_player()
 
-    def play_round(self) -> None:
-        """Play a round. Player has to choose between play or discard then pick a card in deck or discard pile"""
+        if skip_card is False:
+            self.pick_card()
+            self.switch_player()
+
+    def play_round(
+        self, action: Optional[str] = None, index: Optional[str] = None, skip_card: bool = False, gui: bool = False
+    ) -> None:
+        """Play a round. Player has to choose between play or discard then pick a card in deck or discard pile
+
+        Args:
+            action (Optional[str]): if not None, action to play else would be asked with input. Defaults to None.
+            index (Optional[str]): if not None, index to take else would be asked with input. Defaults to None.
+            skip_card (bool): Whether to skip last action as taking a card and switch player. Defaults to False.
+            gui (bool): Whether playing gui. Defaults to False.
+
+        """
         current_player: Player = self.players[self.current_player]
 
         logger.info(f"{current_player.name}'s turn.")
@@ -131,6 +156,7 @@ class LostCitiesGame:
                 current_player.play_card(card)
             else:
                 discarded_card: Card = current_player.discard_card(card)
+                discarded_card.rotate_surface_to_discard()
                 self.discard_piles.append(discarded_card)
 
             last_discarded: Optional[Card] = None
@@ -143,21 +169,21 @@ class LostCitiesGame:
 
         else:
             logger.info(f"Your hand: {[f'{i} = {card}' for i, card in enumerate(current_player.hand)]}")
-            action = input("Choose an action (play/discard): ")
+            new_action = action or input("Choose an action (play/discard): ")
             while True:
-                if action not in ["play", "discard"]:
-                    logger.warning(f"{action} is not a valid action. Choose play or discard.")
-                    action = input("Choose an action (play/discard): ")
+                if new_action not in ["play", "discard"]:
+                    logger.warning(f"{new_action} is not a valid action. Choose play or discard.")
+                    new_action = input("Choose an action (play/discard): ")
                 else:
                     break
-            if action == "play":
+            if new_action == "play":
                 while True:
-                    played: bool = self.action_play_card()
-                    if played:
+                    played: bool = self.action_play_card(index=index, skip_card=skip_card)
+                    if played or gui:
                         break
 
             else:
-                self.action_discard()
+                self.action_discard(index=index, skip_card=skip_card)
 
     def play_game(self) -> None:
         """Launch the game"""

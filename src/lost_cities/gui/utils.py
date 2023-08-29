@@ -1,5 +1,5 @@
-from PIL import Image
 import numpy as np
+from PIL import Image
 
 image: np.ndarray = np.array(Image.open("src/lost_cities/gui/assets/cards.webp"))
 size: tuple[int, int] = (85, 133)
@@ -35,15 +35,12 @@ def rgba2rgb(rgba: np.ndarray, background: tuple[int, int, int] = (255, 255, 255
     """
     row, col, ch = rgba.shape
 
-    if ch == 3:
-        return rgba
-
     assert ch == 4, "RGBA image has 4 channels."
 
     rgb: np.ndarray = np.zeros((row, col, 3), dtype="float32")
     r, g, b, a = rgba[:, :, 0], rgba[:, :, 1], rgba[:, :, 2], rgba[:, :, 3]
 
-    a: np.ndarray = np.asarray(a, dtype="float32") / 255.0
+    a = np.asarray(a, dtype="float32") / 255.0
 
     R, G, B = background
 

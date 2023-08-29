@@ -38,9 +38,9 @@ class Player:
         # check whether it is allowed
         played: bool = False
         expedition: list = self.board[card.color]
-        if len(expedition) == 0 or card.value >= expedition[-1]:
+        if len(expedition) == 0 or card.value >= expedition[-1].value:
             self.hand.remove(card)
-            self.board[card.color].append(card.value)
+            self.board[card.color].append(card)
             played = True
             logger.info(f"{self.name} plays {str(card)}")
         else:
@@ -80,8 +80,8 @@ class Player:
         expedition_value: int = 0
 
         if len(expedition) > 0:
-            paris_count = sum(value == 0 for value in expedition) + 1
-            expedition_value = sum(value for value in expedition) - 20
+            paris_count = sum(card.value == 0 for card in expedition) + 1
+            expedition_value = sum(card.value for card in expedition) - 20
 
             expedition_value *= paris_count
             if len(expedition) >= 8:
@@ -127,7 +127,7 @@ class ComputerPlayer(Player):
 
             # Play close card
             if self.board[color]:
-                last_card_value: int = self.board[color][-1] if len(self.board[color]) > 0 else 0
+                last_card_value: int = self.board[color][-1].value if len(self.board[color]) > 0 else 0
                 closest_card: list[bool] = [card.value == last_card_value + 1 for card in colored_hand]
                 close_card: list[bool] = [card.value == last_card_value + 2 for card in colored_hand]
                 if any(closest_card):
@@ -139,7 +139,7 @@ class ComputerPlayer(Player):
         for color in self.board:
             # Discard if many card not playable
             colored_hand = [card for card in self.hand if card.color == color]
-            last_value: int = self.board[color][-1] if len(self.board[color]) > 0 else 0
+            last_value: int = self.board[color][-1].value if len(self.board[color]) > 0 else 0
             not_playable: list[Card] = [card for card in colored_hand if card.value < last_value]
             if len(not_playable) >= 3:
                 return ("discard", not_playable[0])
@@ -149,7 +149,7 @@ class ComputerPlayer(Player):
         for color in self.board:
             # play the closest
             colored_hand = [card for card in self.hand if card.color == color]
-            last_value = self.board[color][-1] if len(self.board[color]) > 0 else 0
+            last_value = self.board[color][-1].value if len(self.board[color]) > 0 else 0
             playable: list[Card] = [card for card in colored_hand if card.value >= last_value]
             potential_diff: int = playable[0].value - last_value if len(playable) > 0 else 99
             if playable and (best_move.get("card") is None or best_move.get("diff", 100) > potential_diff):
@@ -180,7 +180,7 @@ class ComputerPlayer(Player):
         if not board_color and discard_card.value >= 4:
             return "discard"
 
-        if board_color and discard_card.value > board_color[-1]:
+        if board_color and discard_card.value > board_color[-1].value:
             return "discard"
 
         return "deck"
