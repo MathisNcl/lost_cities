@@ -1,7 +1,9 @@
+import pygame
 import pytest
 
 from lost_cities.card import Card
 from lost_cities.game import LostCitiesGame
+from lost_cities.gui.gui import GUIGame
 from lost_cities.player import ComputerPlayer, Player
 
 
@@ -33,3 +35,11 @@ def game_setup():
     game.setup()
 
     return game
+
+
+@pytest.fixture
+def gui_game():
+    pygame.init()
+    game = GUIGame()
+    yield game
+    pygame.quit()

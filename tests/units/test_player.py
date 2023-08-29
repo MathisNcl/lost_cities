@@ -37,14 +37,14 @@ def test_play_card_allowed(last_value, value, test_player, caplog):
     card = Card("Yellow", value)
     test_player.hand.append(card)
     if last_value is not None:
-        test_player.board["Yellow"] = [last_value]
+        test_player.board["Yellow"] = [Card("Yellow", last_value)]
     result = test_player.play_card(card)
     assert result is True
     assert len(test_player.hand) == 0
     if last_value is None:
-        assert test_player.board["Yellow"] == [value]
+        assert test_player.board["Yellow"] == [Card("Yellow", value)]
     else:
-        assert test_player.board["Yellow"] == [last_value, value]
+        assert test_player.board["Yellow"] == [Card("Yellow", last_value), Card("Yellow", value)]
     assert f"Player1 plays {value}:Yellow" in caplog.text
 
 
@@ -52,20 +52,24 @@ def test_play_card_allowed(last_value, value, test_player, caplog):
 def test_play_card_not_allowed(value, test_player, caplog):
     card = Card("Yellow", value)
     test_player.hand.append(card)
-    test_player.board["Yellow"] = [0, 4]
+    test_player.board["Yellow"] = [Card("Yellow", 0), Card("Yellow", 4)]
     result = test_player.play_card(card)
     assert result is False
     assert len(test_player.hand) == 1
-    assert test_player.board["Yellow"] == [0, 4]
+    assert test_player.board["Yellow"] == [Card("Yellow", 0), Card("Yellow", 4)]
     assert f"can not play this card {value}:Yellow because the last card is 4" in caplog.text
 
 
 def test_compute_score(test_player):
-    test_player.board["Yellow"] = [0, 3, 4, 6, 10]
-    test_player.board["Blue"] = [6, 7]
-    test_player.board["White"] = []
-    test_player.board["Green"] = [3, 5, 7, 8, 9]
-    test_player.board["Red"] = [0, 0, 0, 2, 4, 5, 8, 9]
+    board = {
+        "Yellow": [0, 3, 4, 6, 10],
+        "Blue": [6, 7],
+        "White": [],
+        "Green": [3, 5, 7, 8, 9],
+        "Red": [0, 0, 0, 2, 4, 5, 8, 9],
+    }
+
+    test_player.board = {color: [Card(color, value) for value in values] for color, values in board.items()}
     score, detail = test_player.compute_score()
     assert score == 63
     assert detail["Yellow"] == 6
@@ -108,6 +112,7 @@ def test_computer_player_instanciate(computer_player):
     ],
 )
 def test_choose_action_high_importance(computer_player, board, expected_action):
+    board = {color: [Card(color, value) for value in values] for color, values in board.items()}
     computer_player.board.update(board)
     action = computer_player.choose_action()
     assert action == expected_action
@@ -121,6 +126,7 @@ def test_choose_action_high_importance(computer_player, board, expected_action):
     ],
 )
 def test_choose_action_medium_importance(computer_player, board, expected_action):
+    board = {color: [Card(color, value) for value in values] for color, values in board.items()}
     computer_player.board.update(board)
     action = computer_player.choose_action()
     assert action == expected_action
@@ -136,9 +142,10 @@ def test_choose_action_medium_importance(computer_player, board, expected_action
     ],
 )
 def test_choose_action_low_importance(computer_player, board, expected_action):
+    board = {color: [Card(color, value) for value in values] for color, values in board.items()}
     computer_player.board.update(board)
     computer_player.discard_card(Card("Yellow", 2))
-    if computer_player.board["Yellow"] == [10]:
+    if computer_player.board["Yellow"] == [Card("Yellow", 10)]:
         computer_player.discard_card(Card("Yellow", 0))
     computer_player.discard_card(Card("Green", 5))
     action = computer_player.choose_action()
@@ -167,6 +174,12 @@ def test_player_choose_pile(computer_player, discard_card, last_action, expected
         Card("Green", 5),
         Card("Green", 8),
     ]
-    computer_player.board = {"Yellow": [], "Blue": [3, 5, 6], "Red": [], "Green": [], "White": []}
+    computer_player.board = {
+        "Yellow": [],
+        "Blue": [Card("Blue", 3), Card("Blue", 5), Card("Blue", 6)],
+        "Red": [],
+        "Green": [],
+        "White": [],
+    }
     result = computer_player.choose_pile(discard_card, last_action)
     assert result == expected_choice

@@ -1,11 +1,12 @@
-name: Test
+name: lint
 
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-  workflow_dispatch:
+    push:
+      branches:
+        - master
+    pull_request:
+    workflow_dispatch:
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -29,10 +30,7 @@ jobs:
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: pip install -e .[all]
-      - name: Test
-        run: pytest -v --cov=src --cov-report xml
-      - name: Coveralls
-        uses: coverallsapp/github-action@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: coverage.xml
+      - name: mypy
+        run: mypy src/
+      - name: flake
+        run: flake8 -v

@@ -77,7 +77,7 @@ def test_pick_card_discard(mock_input, game_setup):
 @patch("builtins.input", side_effect=["0"])
 def test_action_play_card_not_playable(mock_input, game_setup, caplog):
     game_setup.players[0].hand[0] = Card("Red", 3)
-    game_setup.players[0].board["Red"] = [4]
+    game_setup.players[0].board["Red"] = [Card("Red", 4)]
 
     assert game_setup.action_play_card() is False
 
@@ -107,7 +107,7 @@ def test_play_round(mock_input, game_setup, caplog):
 
     assert len(game_setup.players[0].hand) == initial_hand_size
     assert first_card != game_setup.players[0].hand[0]
-    assert first_card.value in game_setup.players[0].board[first_card.color]
+    assert first_card in game_setup.players[0].board[first_card.color]
 
     assert len(game_setup.deck) == initial_deck_size - 1
 

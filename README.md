@@ -1,3 +1,6 @@
+![Version](https://img.shields.io/badge/python-3.9|3.10|3.11-brightgreen)
+[![Coverage Status](https://coveralls.io/repos/github/MathisNcl/lost_cities/badge.svg?branch=master)](https://coveralls.io/github/MathisNcl/lost_cities?branch=master)
+
 # Lost Cities
 
 Welcome to my personal implementation of the Lost Cities card game structure. This is a very entertaining card game created by Reiner Knizia. In this game, you play one-on-one to score as many points as possible. You can play it in 5 or 10 rounds, adding up your scores for each round.
