@@ -4,6 +4,7 @@ import numpy as np
 import pygame
 from pygame import Rect, Surface
 
+from lost_cities.card import Card
 from lost_cities.game import LostCitiesGame
 from lost_cities.gui.settings import settings
 from lost_cities.gui.utils import extract_card
@@ -25,9 +26,9 @@ class GUIGame:
         }
 
         # Update coord
-        self.pygame_objects["play_logo_rect"].topleft = settings.logo_play_position
-        self.pygame_objects["discard_logo_rect"].topleft = settings.discard_play_position
-        self.pygame_objects["deck_rect"].topleft = settings.deck_position
+        self.pygame_objects["play_logo_rect"].topleft = settings.logo_play_position  # type: ignore
+        self.pygame_objects["discard_logo_rect"].topleft = settings.discard_play_position  # type: ignore
+        self.pygame_objects["deck_rect"].topleft = settings.deck_position  # type: ignore
 
         # Pygame structure
         pygame.init()
@@ -36,8 +37,8 @@ class GUIGame:
         self.font = pygame.font.Font("src/lost_cities/gui/assets/atlantis_font.ttf", 40)
         self.hand_text = self.font.render("Hand:", True, (200, 200, 200))
         self.running: bool = True
-        self.rect_selected = None
-        self.selected_card = None
+        self.rect_selected: Optional[pygame.Rect] = None
+        self.selected_card: Optional[Card] = None
 
         # Final Game
         self.game: LostCitiesGame = LostCitiesGame("Player1", "Computer", True)
@@ -163,21 +164,27 @@ class GUIGame:
                 self.screen, settings.BLACK, (settings.END_X, settings.END_Y, settings.END_WIDTH, settings.END_HEIGHT)
             )
             scores: dict[str, Any] = {player.name: player.compute_score() for player in self.game.players}
-            game_ended_text: pygame.font.Font = self.font.render(
+            game_ended_text: pygame.font.Font = self.font.render(  # type: ignore
                 f"Winner: {max(scores, key=scores.get)}", True, settings.WHITE  # type: ignore
             )
-            score_player1: pygame.font.Font = self.font.render(f"Player1: {scores['Player1'][0]}", True, settings.WHITE)
-            score_computer: pygame.font.Font = self.font.render(
+            score_player1: pygame.font.Font = self.font.render(  # type: ignore
+                f"Player1: {scores['Player1'][0]}", True, settings.WHITE
+            )
+            score_computer: pygame.font.Font = self.font.render(  # type: ignore
                 f"Computer: {scores['Computer'][0]}", True, settings.WHITE
             )
+            # mypy says bullshits
             self.screen.blit(
-                game_ended_text, ((settings.END_WIDTH - game_ended_text.get_width()) // 2, settings.END_Y + 50)
+                game_ended_text,  # type: ignore
+                ((settings.END_WIDTH - game_ended_text.get_width()) // 2, settings.END_Y + 50),  # type: ignore
             )
             self.screen.blit(
-                score_player1, ((settings.END_WIDTH - score_player1.get_width()) // 2, settings.END_Y + 150)
+                score_player1,  # type: ignore
+                ((settings.END_WIDTH - score_player1.get_width()) // 2, settings.END_Y + 150),  # type: ignore
             )
             self.screen.blit(
-                score_computer, ((settings.END_WIDTH - score_computer.get_width()) // 2, settings.END_Y + 250)
+                score_computer,  # type: ignore
+                ((settings.END_WIDTH - score_computer.get_width()) // 2, settings.END_Y + 250),  # type: ignore
             )
 
     def can_i_play(self, nb_testing: Optional[int] = None) -> None:
