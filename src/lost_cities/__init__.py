@@ -3,7 +3,7 @@ import logging
 
 __author__ = """Mathis Nicoli"""
 __email__ = "mathis.nicoli@gmail.com"
-VERSION = (0, 1, 0)
+VERSION = (0, 2, 0)
 __version__ = ".".join(map(str, VERSION))
 
 logger: logging.Logger = logging.getLogger(__name__)

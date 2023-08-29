@@ -1,5 +1,6 @@
-from lost_cities.gui.settings import settings
 from pydantic_settings import BaseSettings
+
+from lost_cities.gui.settings import settings
 
 
 def test_settings():
