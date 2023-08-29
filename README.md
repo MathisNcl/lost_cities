@@ -22,7 +22,13 @@ To check the rules: [click here](https://cdn.1j1ju.com/medias/c8/66/47-lost-citi
 
 ## How to play?
 
-Run in your terminal:
+For graphicqal version, run in your terminal:
+
+```sh
+play-lost-gui
+```
+
+To play in your command line, run in your terminal:
 
 ```sh
 play-lost

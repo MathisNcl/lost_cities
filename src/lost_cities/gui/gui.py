@@ -75,6 +75,7 @@ class GUIGame:
                 for i, card in enumerate(cards):
                     x, y = settings.pile_positions[player_side][color]
                     y += step * i
+                    card.unrotate_surface_to_discard()
                     self.screen.blit(card.surface, (x, y))
 
     def show_hand(self) -> None:
@@ -131,8 +132,6 @@ class GUIGame:
             self.rect_selected = None
 
         elif self.selected_card is not None and self.pygame_objects["discard_logo_rect"].collidepoint(event.pos):
-            x, y = settings.discard_position
-            self.selected_card.set_coord(x, y)
             self.game.play_round("discard", str(self.game.players[0].hand.index(self.selected_card)), skip_card=True)
             self.selected_card = None
             self.rect_selected = None

@@ -3,6 +3,7 @@ from typing import Any, Literal, Optional
 
 from lost_cities import logger
 from lost_cities.card import Card
+from lost_cities.gui.settings import settings
 from lost_cities.player import ComputerPlayer, Player
 
 
@@ -128,6 +129,8 @@ class LostCitiesGame:
 
         current_player.discard_card(card)
         card.rotate_surface_to_discard()
+        x, y = settings.discard_position
+        card.set_coord(x, y)
         self.discard_piles.append(card)
 
         if skip_card is False:
