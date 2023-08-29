@@ -30,4 +30,9 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: pip install -e .[all]
       - name: Test
-        run: pytest  -v
+        run: pytest -v --cov=src --cov-report xml
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: coverage.xml
