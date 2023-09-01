@@ -35,13 +35,15 @@ class GUIGame:
         self.screen: Surface = pygame.display.set_mode((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT))
         pygame.display.set_caption("Lost Cities GUI")
         self.font = pygame.font.Font("src/lost_cities/gui/assets/atlantis_font.ttf", 40)
-        self.hand_text = self.font.render("Hand:", True, (200, 200, 200))
         self.running: bool = True
         self.rect_selected: Optional[pygame.Rect] = None
         self.selected_card: Optional[Card] = None
+        self.last_action: Optional[str] = None
+        self.end: bool = False
 
         # Final Game
         self.game: LostCitiesGame = LostCitiesGame("Player1", "Computer", True)
+        self.game.deck = self.game.deck[:20]
 
     def show_setup_structure(self) -> None:
         """Blits important infos as:
@@ -57,6 +59,7 @@ class GUIGame:
 
         # discard
         if self.game.discard_piles:
+            self.game.discard_piles[-1].set_coord(settings.discard_position[0], settings.discard_position[1])
             self.screen.blit(self.game.discard_piles[-1].surface, settings.discard_position)
 
         # logo:
@@ -64,7 +67,7 @@ class GUIGame:
         self.screen.blit(self.assets["discard_logo"], settings.discard_play_position)
 
         # hand
-        self.screen.blit(self.hand_text, (5, 5))
+        self.screen.blit(self.font.render("Hand:", True, (200, 200, 200)), (5, 5))
 
     def show_played_cards(self) -> None:
         """Blits all cards played by both player in the board"""
@@ -91,11 +94,12 @@ class GUIGame:
 
     def trigger_event(self) -> None:
         """Triggers all events based on a click"""
-        if len(self.game.deck) == 0:
-            return
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+
+            elif len(self.game.deck) == 0 and event.type == pygame.KEYUP and event.unicode.lower() == "r":
+                self.do_i_need_to_restart(event)
 
             elif self.game.current_player == 1 and len(self.game.deck) >= 1:
                 self.game.play_round()
@@ -124,17 +128,22 @@ class GUIGame:
         Args:
             event (pygame.event.Event): click event
         """
-        if self.selected_card is not None and self.pygame_objects["play_logo_rect"].collidepoint(event.pos):
-            self.game.play_round(
-                "play", str(self.game.players[0].hand.index(self.selected_card)), skip_card=True, gui=True
-            )
-            self.selected_card = None
-            self.rect_selected = None
+        if self.selected_card is not None and len(self.game.players[0].hand) == 8:
+            if self.pygame_objects["play_logo_rect"].collidepoint(event.pos):
+                self.game.play_round(
+                    "play", str(self.game.players[0].hand.index(self.selected_card)), skip_card=True, gui=True
+                )
+                self.last_action = "play"
+                self.selected_card = None
+                self.rect_selected = None
 
-        elif self.selected_card is not None and self.pygame_objects["discard_logo_rect"].collidepoint(event.pos):
-            self.game.play_round("discard", str(self.game.players[0].hand.index(self.selected_card)), skip_card=True)
-            self.selected_card = None
-            self.rect_selected = None
+            elif self.pygame_objects["discard_logo_rect"].collidepoint(event.pos):
+                self.game.play_round(
+                    "discard", str(self.game.players[0].hand.index(self.selected_card)), skip_card=True
+                )
+                self.last_action = "discard"
+                self.selected_card = None
+                self.rect_selected = None
 
     def pick_card_on_pile(self, event: pygame.event.Event) -> None:
         """Either take a card from discard or deck. Only trigger if you have less than 8 cards and there is a click on
@@ -147,6 +156,7 @@ class GUIGame:
             len(self.game.players[0].hand) != 8
             and self.game.discard_piles
             and self.game.discard_piles[-1].rect.collidepoint(event.pos)
+            and self.last_action != "discard"
         ):
             self.game.discard_piles[-1].unrotate_surface_to_discard()
             self.game.pick_card("discard")
@@ -156,9 +166,21 @@ class GUIGame:
             self.game.pick_card("deck")
             self.game.switch_player()
 
+    def do_i_need_to_restart(self, event: pygame.event.Event) -> None:
+        """Restart the game when clicking and this is the end
+
+        Args:
+            event (pygame.event.Event): click event
+        """
+        if self.end is True:
+            self.game = LostCitiesGame("Player1", "Computer", True)
+            self.game.setup()
+            self.end = False
+
     def stop_game(self) -> None:
         """End layout, display who wons into an ugly rectangle"""
         if len(self.game.deck) <= 0:
+            self.end = True
             pygame.draw.rect(
                 self.screen, settings.BLACK, (settings.END_X, settings.END_Y, settings.END_WIDTH, settings.END_HEIGHT)
             )

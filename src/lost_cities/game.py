@@ -158,9 +158,7 @@ class LostCitiesGame:
             if action == "play":
                 current_player.play_card(card)
             else:
-                discarded_card: Card = current_player.discard_card(card)
-                discarded_card.rotate_surface_to_discard()
-                self.discard_piles.append(discarded_card)
+                self.action_discard(str(current_player.hand.index(card)), skip_card=True)
 
             last_discarded: Optional[Card] = None
             if len(self.discard_piles) > 0:
