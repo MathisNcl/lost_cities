@@ -96,7 +96,11 @@ def test_game_only_computers(caplog):
 
 @patch("builtins.input", side_effect=["dummy", "play", "10", "dummy", "0", "deck"])
 def test_play_round(mock_input, game_setup, caplog):
-    first_card = game_setup.players[0].hand[0]
+    first_card = Card("Blue", 0)
+    second_card = Card("Blue", 2)
+    game_setup.players[0].hand[0] = first_card
+    game_setup.players[0].hand[1] = second_card
+
     # kind of mocking
     game_setup.deck.pop()
     game_setup.deck.append(Card("Blue", 10))  # other than 0 something
@@ -111,6 +115,7 @@ def test_play_round(mock_input, game_setup, caplog):
 
     assert len(game_setup.players[0].hand) == initial_hand_size
     assert first_card != game_setup.players[0].hand[0]
+    assert second_card == game_setup.players[0].hand[0]
     assert first_card in game_setup.players[0].board[first_card.color]
 
     assert len(game_setup.deck) == initial_deck_size - 1
