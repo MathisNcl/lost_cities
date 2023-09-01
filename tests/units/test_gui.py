@@ -10,7 +10,8 @@ def test_init(gui_game):
     assert gui_game.pygame_objects
     assert gui_game.screen
     assert gui_game.font
-    assert gui_game.hand_text
+    assert gui_game.end is False
+    assert gui_game.last_action is None
     assert gui_game.running
     assert gui_game.rect_selected is None
     assert gui_game.selected_card is None

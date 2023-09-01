@@ -7,9 +7,11 @@ Welcome to my personal implementation of the Lost Cities card game structure. Th
 
 In my implementation, it's possible to play against a computer that follows personal rules.
 
-For the moment, there is no GUI (incoming). I am looking to set up an online interface to play with a friend or against a computer.
+In future i would like to set up an online interface to play with a friend or against a computer.
 
 [Here to see latest modifications!](CHANGELOG.md)
+
+![Game example](gameGUI.gif)
 
 ## Rules
 
@@ -28,6 +30,8 @@ For graphicqal version, run in your terminal:
 play-lost-gui
 ```
 
+When the game is over you can press "R" and play again!
+
 To play in your command line, run in your terminal:
 
 ```sh
@@ -38,7 +42,6 @@ Then choose your name and if you will play against a computer. Enjoy!
 
 ## Possible enhancement
 
-- GUI
 - Dockerize
 - Online
 - Computer using reinforcement learning
